@@ -1,75 +1,78 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fluent_ui/fluent_ui.dart';
 
-import 'cubit/bottom_nav_cubit.dart';
 import 'page/app_page.dart';
 import 'page/history_page.dart';
 import 'page/setting_page.dart';
-import 'constants/common_constants.dart' as CommonConstants;
 
 void main() {
-  runApp(MyApp());
+  runApp(MaterialApp(home: CustomNavigationView()));
 }
 
-class MyApp extends StatelessWidget {
+class CustomNavigationView extends StatefulWidget {
   @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-        create: (context) => BottomNavCubit(),
-        child: MaterialApp(
-          title: CommonConstants.APP_NAME,
-          theme: ThemeData(
-            primarySwatch: Colors.blue,
-            visualDensity: VisualDensity.adaptivePlatformDensity,
-          ),
-          home: MainPage(),
-        ));
-  }
+  _CustomNavigationViewState createState() => _CustomNavigationViewState();
 }
 
-class MainPage extends StatefulWidget {
-  @override
-  _MainPageState createState() => _MainPageState();
-}
+class _CustomNavigationViewState extends State<CustomNavigationView> {
 
-class _MainPageState extends State<MainPage> {
-  
-  final _pageNavigation = [
+  int _selectedIndex = 0;
+
+  final List<Widget> _pages = [
     AppsPage(),
     HistoryPage(),
-    SettingPage()
+    SettingPage(),
   ];
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<BottomNavCubit, int>(
-      builder: (context, state) {
-        return Scaffold(
-          body: _buildBody(state),
-          bottomNavigationBar: _buildBottomNav(),
-        );
-      },
+    return Scaffold(
+      body: Row(
+        children: [
+          NavigationRail(
+            selectedIndex: _selectedIndex,
+            onDestinationSelected: (int index) {
+              setState(() {
+                _selectedIndex = index;
+              });
+            },
+            labelType: NavigationRailLabelType.all,
+            destinations: [
+              NavigationRailDestination(
+                icon: Icon(Icons.home),
+                label: Text('Home'),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.history),
+                label: Text('History'),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.settings),
+                label: Text('Settings'),
+              ),
+            ],
+          ),
+          VerticalDivider(thickness: 1, width: 1),
+          Expanded(
+            child: Navigator(
+              pages: [
+                MaterialPage(child: _pages[_selectedIndex]),
+              ],
+              onPopPage: (route, result) {
+                if (!route.didPop(result)) {
+                  return false;
+                }
+
+                setState(() {
+                  _selectedIndex = 0;
+                });
+
+                return true;
+              },
+            ),
+          ),
+        ],
+      ),
     );
-  }
-
-  Widget _buildBody(int index) {
-    return _pageNavigation.elementAt(index);
-  }
-
-  Widget _buildBottomNav() {
-    return BottomNavigationBar(
-      currentIndex: context.read<BottomNavCubit>().state,
-      type: BottomNavigationBarType.fixed,
-      onTap: _getChangeBottomNav,
-      items: [
-        BottomNavigationBarItem(icon: Icon(Icons.apps), label: "Apps"),
-        BottomNavigationBarItem(icon: Icon(Icons.history), label: "History"),
-        BottomNavigationBarItem(icon: Icon(Icons.settings), label: "Setting"),
-      ],
-    );
-  }
-
-  void _getChangeBottomNav(int index) {
-    context.read<BottomNavCubit>().updateIndex(index);
   }
 }
