@@ -7,7 +7,7 @@ import 'package:mobx/mobx.dart';
 import 'store/navigation_store.dart';
 
 void main() {
-  runApp(MaterialApp(home: CustomNavigationView()));
+  runApp(MaterialApp(debugShowCheckedModeBanner: false, home: CustomNavigationView()));
 }
 
 class CustomNavigationView extends StatelessWidget {
